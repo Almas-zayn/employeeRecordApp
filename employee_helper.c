@@ -14,6 +14,7 @@ void successfullMsg(char *msg){
 void titleMsg(char *msg){
     printf("\033[94m  %s\033[0m\n",msg);
 }
+
 int validateFullName(const char *name) {
     if (name == NULL || *name == '\0') return 0;
 
@@ -82,7 +83,7 @@ void viewAllEmployees(CompanyRecord companyRecord)
 }
 
 
-void searchEmployee(CompanyRecord companyRecord)
+void searchEmployee(CompanyRecord *companyRecord)
 {
     system("clear");
     char choice;
@@ -114,12 +115,12 @@ void searchEmployee(CompanyRecord companyRecord)
     wantToExitScreen();
 }
 
-int searchEmployeeWithId(CompanyRecord companyRecord,int employeeId,int print){
-    int noOfEmployees = companyRecord.noOfEmployees;
+int searchEmployeeWithId(CompanyRecord *companyRecord,int employeeId,int print){
+    int noOfEmployees = companyRecord->noOfEmployees;
     for(int i = 0; i < noOfEmployees; i++){
-        if(employeeId == companyRecord.employeeRecord[i].employeeId){
+        if(employeeId == companyRecord->employeeRecord[i].employeeId){
             if(print == 1){
-                viewEmployeeRecord(companyRecord.employeeRecord[i]);
+                viewEmployeeRecord(companyRecord->employeeRecord[i]);
                 return i;
             }else{
                 return i;
@@ -130,10 +131,10 @@ int searchEmployeeWithId(CompanyRecord companyRecord,int employeeId,int print){
         printf("\n  Employee with ID : %d ",employeeId);
         showErrorMsg("not found in Employee Database\n");
     };
-    return 0;
+    return -1;
 }
 
-int searchEmployeeWithName(CompanyRecord companyRecord,int print){
+int searchEmployeeWithName(CompanyRecord *companyRecord,int print){
     char searchName[100];
     printf("\n\nEnter the Name of Employee : ");
  NAME: fgets(searchName,100,stdin);
@@ -143,14 +144,14 @@ int searchEmployeeWithName(CompanyRecord companyRecord,int print){
         showErrorMsg("Enter Name Correctly : ");
         goto NAME;
     }
-    int noOfEmployees = companyRecord.noOfEmployees;
+    int noOfEmployees = companyRecord->noOfEmployees;
     char fullName[100];
     for(int i = 0;i < noOfEmployees ;i++){
-        sprintf(fullName,"%s %s", companyRecord.employeeRecord[i].firstName, companyRecord.employeeRecord[i].lastName);
+        sprintf(fullName,"%s %s", companyRecord->employeeRecord[i].firstName, companyRecord->employeeRecord[i].lastName);
         if(strcmp(searchName , fullName) == 0){
             if(print == 1){
                 successfullMsg("\n Employee found --------------");
-                viewEmployeeRecord(companyRecord.employeeRecord[i]);
+                viewEmployeeRecord(companyRecord->employeeRecord[i]);
                 return i;
             }else{
                 return i;
@@ -161,13 +162,13 @@ int searchEmployeeWithName(CompanyRecord companyRecord,int print){
     return 0;
 }
 
-int searchEmployeeWithDepartments(CompanyRecord companyRecord,enum DEPARTMENT dep,int print){
-    int noOfEmployees = companyRecord.noOfEmployees;
+int searchEmployeeWithDepartments(CompanyRecord *companyRecord,enum DEPARTMENT dep,int print){
+    int noOfEmployees = companyRecord->noOfEmployees;
     int count=0;
     for(int i=0;i < noOfEmployees;i++){
-        if(dep == companyRecord.employeeRecord[i].department){
+        if(dep == companyRecord->employeeRecord[i].department){
             if(print == 1){
-                viewEmployeeRecord(companyRecord.employeeRecord[i]);
+                viewEmployeeRecord(companyRecord->employeeRecord[i]);
             }
             count++;
         }
@@ -225,15 +226,19 @@ int addEmployee(CompanyRecord *companyRecord,FILE *employeeFile)
       } 
       else {
          companyRecord->employeeRecord[companyRecord->noOfEmployees -1] = temp;
-         successfullMsg("\n\nAdding Employee to file\n\n");
-         fseek(employeeFile,0,SEEK_END);
-         if((fprintf(employeeFile, "\n%d %s %s %f %d ",temp.employeeId,temp.firstName, temp.lastName,temp.salary, temp.department)))
-         {
-             successfullMsg("Employee Data added to Employees Record Successfully \n");
-         }
+         addToFile(employeeFile,temp);
    }
    wantToExitScreen();
    return 0; 
+}
+void addToFile(FILE *employeeFile,EmployeeRecord emp){
+      successfullMsg("\n\nAdding Employee to file\n\n");
+      fseek(employeeFile,0,SEEK_END);
+      if((fprintf(employeeFile, "\n%d %s %s %f %d ",emp.employeeId,emp.firstName, emp.lastName,emp.salary, emp.department)))
+      {
+          successfullMsg("Employee Data added to Employees Record Successfully \n");
+      }
+      fflush(employeeFile);
 }
 
 void viewCompanyRecord(CompanyRecord companyRecord) {
@@ -271,7 +276,7 @@ void viewCompanyRecord(CompanyRecord companyRecord) {
     wantToExitScreen();
 }
 
-void exportEmployeeRecord(CompanyRecord companyRecord)
+void exportEmployeeRecord(CompanyRecord *companyRecord)
 {
     system("clear");
     titleMsg("\n\n       ----->  Export Employee Record   <-----   \n\n");
@@ -286,7 +291,7 @@ void exportEmployeeRecord(CompanyRecord companyRecord)
         return;
     }
 
-    EmployeeRecord emp = companyRecord.employeeRecord[employeeIndex];
+    EmployeeRecord emp = companyRecord->employeeRecord[employeeIndex];
 
     // Create file name: FirstName123.txt
     char fileName[100];
@@ -312,6 +317,102 @@ void exportEmployeeRecord(CompanyRecord companyRecord)
     fclose(exportFile);
     successfullMsg("Employee report exported Successfully ");
     wantToExitScreen();
+}
+enum DEPARTMENT getDepartmentFromName(const char* name) {
+    if (strcasecmp(name, "Testing") == 0) return TESTING;
+    if (strcasecmp(name, "IT") == 0) return IT;
+    if (strcasecmp(name, "HR") == 0) return HR;
+    if (strcasecmp(name, "Finance") == 0) return FINANCE;
+    if (strcasecmp(name, "Sales") == 0) return SALES;
+    return -1;
+}
+
+void query(CompanyRecord *companyRecord,FILE *employeeFile) {
+    system("clear");
+    printf("\n\n\033[1;36mWrite the Query you want to perform ( ADD / SEARCH / QUIT )\033[0m\n\n");
+  START:  printf("\033[1;32mEnter the Query: \033[0m");
+    while(getchar()!='\n');
+    char input[200];
+    fgets(input, sizeof(input), stdin);
+    input[strcspn(input, "\n")] = '\0';
+
+    // Tokenize
+    char *token = strtok(input, " ");
+    if (!token) return;
+
+    if (strcasecmp(token, "ADD") == 0) {
+        // Expected: ADD first last salary department
+        char *first = strtok(NULL, " ");
+        char *last = strtok(NULL, " ");
+        char *salaryStr = strtok(NULL, " ");
+        char *deptStr = strtok(NULL, " ");
+
+        if (!first || !last || !salaryStr || !deptStr) {
+            printf("\033[1;31mInvalid ADD query. Format: ADD FirstName LastName Salary Department\033[0m\n");
+            return;
+        }
+
+        float salary = atof(salaryStr);
+        enum DEPARTMENT dept = getDepartmentFromName(deptStr);
+        if (dept == -1) {
+            printf("\033[1;31mInvalid department.\033[0m\n");
+            return;
+        }
+
+        int id = companyRecord->nextAvailableEmployeeId++;
+        companyRecord->employeeRecord[companyRecord->noOfEmployees++] = 
+            (EmployeeRecord){ id, "", "", salary, dept };
+
+        strncpy(companyRecord->employeeRecord[companyRecord->noOfEmployees - 1].firstName, first, 49);
+        strncpy(companyRecord->employeeRecord[companyRecord->noOfEmployees - 1].lastName, last, 49);
+        EmployeeRecord emp = companyRecord->employeeRecord[companyRecord->noOfEmployees-1];
+        addToFile(employeeFile,emp);
+        printf("\033[1;32mEmployee Added: ID %d\033[0m\n", id);
+        wantToExitScreen();
+    } 
+    else if (strcasecmp(token, "SEARCH") == 0) {
+        char *arg = strtok(NULL, " ");
+        if (!arg) {
+            printf("\033[1;31mInvalid SEARCH query. Format: SEARCH <ID/Name/Department>\033[0m\n");
+            return;
+        }
+
+        int found = 0;
+
+        // Check if numeric (search by ID)
+        if (isdigit(arg[0])) {
+            int id = atoi(arg);
+           if(searchEmployeeWithId(companyRecord,id,1) >= 0) found = 1;
+        } 
+        else {
+            // Try match as department or name
+            enum DEPARTMENT dept = getDepartmentFromName(arg);
+            for (int i = 0; i < companyRecord->noOfEmployees; i++) {
+                EmployeeRecord e = companyRecord->employeeRecord[i];
+                if (dept != -1 && e.department == dept) {
+                    printf("\033[1;34mID: %d, Name: %s %s, Salary: %.2f, Dept: %s\033[0m\n",
+                           e.employeeId, e.firstName, e.lastName, e.salary, getDepartmentName(e.department));
+                    found = 1;
+                } 
+                else if (strcasecmp(e.firstName, arg) == 0 || strcasecmp(e.lastName, arg) == 0) {
+                    printf("\033[1;34mID: %d, Name: %s %s, Salary: %.2f, Dept: %s\033[0m\n",
+                           e.employeeId, e.firstName, e.lastName, e.salary, getDepartmentName(e.department));
+                    found = 1;
+                }
+            }
+        }
+
+        if (!found) {
+            showErrorMsg("\033[1;31mNo matching employee found.\033[0m\n");
+        }
+    } 
+    else if(strcasecmp(token, "QUIT") == 0){
+        return ;   
+    }
+    else{
+        showErrorMsg("\033[1;31m \n Unknown command. Use ADD or SEARCH or QUIT.\033[0m\n");
+        goto START;
+    }
 }
 
 int stringValidate(char *p) {
