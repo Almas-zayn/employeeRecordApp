@@ -33,13 +33,15 @@ typedef struct companyRecord{
 
 void viewEmployeeRecord(EmployeeRecord employeeRecord);
 void viewAllEmployees(CompanyRecord companyRecord);
-void searchEmployee(CompanyRecord companyRecord);
-int searchEmployeeWithId(CompanyRecord companyRecord,int employeeId,int print);
-int searchEmployeeWithName(CompanyRecord companyRecord,int print);
-int searchEmployeeWithDepartments(CompanyRecord companyRecord,enum DEPARTMENT dep,int print);
+void searchEmployee(CompanyRecord *companyRecord);
+int searchEmployeeWithId(CompanyRecord *companyRecord,int employeeId,int print);
+int searchEmployeeWithName(CompanyRecord *companyRecord,int print);
+int searchEmployeeWithDepartments(CompanyRecord *companyRecord,enum DEPARTMENT dep,int print);
 int addEmployee(CompanyRecord *companyRecord,FILE *employeeFile);
 void viewCompanyRecord(CompanyRecord companyRecord);
-void exportEmployeeRecord(CompanyRecord companyRecord);
+void exportEmployeeRecord(CompanyRecord *companyRecord);
+void query(CompanyRecord *companyRecord,FILE *employeeFile);
+void addToFile(FILE *employeeFile,EmployeeRecord emp);
 
 void wantToExitScreen();
 int stringValidate(char *p);
