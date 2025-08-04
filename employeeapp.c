@@ -36,9 +36,10 @@ int main()
         {
             case '1': viewAllEmployees(companyRecord);break;
             case '2': addEmployee(&companyRecord,employeeFile);break;
-            case '3': exportEmployeeRecord(companyRecord);break;
-            case '4': searchEmployee(companyRecord);break;
+            case '3': exportEmployeeRecord(&companyRecord);break;
+            case '4': searchEmployee(&companyRecord);break;
             case '5': viewCompanyRecord(companyRecord);break;
+            case '6': query(&companyRecord,employeeFile);break;
             default : flag=1;break;
         }
     }
@@ -101,7 +102,7 @@ void displayMenu(int flag) {
         "                      ",
         "                      ",
         " 5. View Company Record",
-        "                      ",
+        " 6. ADD/SEARCH using Query",
         "                      ",
         "                      ",
     };
@@ -110,7 +111,7 @@ void displayMenu(int flag) {
     printf("\n");
 
     for (int i = 0; i < 18; i++) {
-         printf("        \033[48;5;45m\033[30m");
+         printf("        \033[48;5;121m\033[30m");
             printf(" %-35s ", options[i]);
             printf("\033[0m");
         if(i == 5 || i == 11 ) printf("\n");
